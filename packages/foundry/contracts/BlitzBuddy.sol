@@ -78,7 +78,20 @@ abstract contract BlitzBuddy is ReentrancyGuard {
         emit RequestCreated(id, msg.sender, title, msg.value, expiresAt);
     }
 
-    function acceptRequest(uint256 id) external virtual {}
+    function acceptRequest(uint256 requestId) external {
+        // `storage` aliases the struct already persisted in `requests`; writes go to state. With `memory`,
+        // Solidity would copy the mapping value into memory and updates would only affect that temporary copy.
+        HelpRequest storage req = requests[requestId];
+
+        require(req.status == RequestStatus.Open, "Not open");
+        require(block.timestamp < req.expiresAt, "Expired");
+        require(msg.sender != req.requester, "Cannot accept own request");
+
+        req.helper = msg.sender;
+        req.status = RequestStatus.Accepted;
+
+        emit RequestAccepted(requestId, msg.sender);
+    }
 
     function completeRequest(uint256 id) external virtual {}
 
