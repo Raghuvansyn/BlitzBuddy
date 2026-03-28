@@ -39,7 +39,7 @@ abstract contract BlitzBuddy is ReentrancyGuard {
 
     event RequestAccepted(uint256 indexed id, address indexed helper);
 
-    event RequestCompleted(uint256 indexed id, address indexed requester, address indexed helper);
+    event RequestCompleted(uint256 indexed id, address indexed helper, uint256 payout);
 
     event RequestCancelled(uint256 indexed id, address indexed requester);
 
@@ -93,7 +93,29 @@ abstract contract BlitzBuddy is ReentrancyGuard {
         emit RequestAccepted(requestId, msg.sender);
     }
 
-    function completeRequest(uint256 id) external virtual {}
+    function completeRequest(uint256 requestId) external nonReentrant {
+        HelpRequest storage req = requests[requestId];
+
+        // 1. CHECKS
+        require(msg.sender == req.requester, "Not requester");
+        require(req.status == RequestStatus.Accepted, "Not accepted");
+
+        // 2. EFFECTS — update all contract state before any external call (checks-effects-interactions).
+        // We clear `req.bounty` and mark `Completed` *before* sending ETH so a malicious helper cannot
+        // re-enter (e.g. via `receive`/`fallback`) and observe a state where the bounty is still owed/payable
+        // a second time. `nonReentrant` adds another lock, but CEI keeps funds safe if this code is ever
+        // refactored or combined with other paths.
+        uint256 amount = req.bounty;
+        req.status = RequestStatus.Completed;
+        req.bounty = 0;
+
+        // 3. INTERACTIONS
+        address helper = req.helper;
+        (bool success,) = helper.call{ value: amount }("");
+        require(success, "Transfer failed");
+
+        emit RequestCompleted(requestId, helper, amount);
+    }
 
     function cancelRequest(uint256 id) external virtual {}
 
