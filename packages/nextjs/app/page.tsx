@@ -2,14 +2,13 @@
 
 import type { NextPage } from "next";
 import { CreateRequestForm } from "~~/components/blitz/CreateRequestForm";
-import { RequestsList } from "~~/components/blitz/RequestsList";
 import { DeveloperMap } from "~~/components/blitz/DeveloperMap";
+import { RequestsList } from "~~/components/blitz/RequestsList";
 
 const Home: NextPage = () => {
   return (
     <>
       <div className="flex items-center flex-col grow pt-8 px-4 md:px-10 pb-20 bg-[#fafafa] min-h-screen font-sans text-gray-900">
-        
         {/* Header */}
         <div className="w-full max-w-7xl flex flex-col md:flex-row justify-between items-center mb-8">
           <div>
@@ -26,7 +25,7 @@ const Home: NextPage = () => {
         <div className="w-full flex flex-col lg:flex-row gap-8 max-w-7xl h-auto lg:h-[500px] mb-12">
           {/* Left Side: Map of developers */}
           <div className="w-full lg:w-3/5 h-[400px] lg:h-full flex-shrink-0">
-             <DeveloperMap />
+            <DeveloperMap />
           </div>
 
           {/* Right Side: Create Request Box */}
@@ -36,13 +35,13 @@ const Home: NextPage = () => {
         </div>
 
         <div className="w-full flex gap-8 max-w-7xl flex-col lg:flex-row">
-            <div className="w-full lg:w-1/2 bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
-              <RequestsList title="Available Bounties" filterStatus={0} />
-            </div>
-            
-            <div className="w-full lg:w-1/2 bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
-              <RequestsList title="Activity History" />
-            </div>
+          <div className="w-full lg:w-1/2 bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+            <RequestsList title="Available Bounties" filterStatus={0} />
+          </div>
+
+          <div className="w-full lg:w-1/2 bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+            <RequestsList title="Activity History" />
+          </div>
         </div>
       </div>
     </>

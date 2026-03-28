@@ -1,10 +1,10 @@
 "use client";
 
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-import { useAccount } from "wagmi";
 import { RequestCard } from "./RequestCard";
+import { useAccount } from "wagmi";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
-export const RequestsList = ({ filterStatus, title }: { filterStatus?: number, title: string }) => {
+export const RequestsList = ({ filterStatus, title }: { filterStatus?: number; title: string }) => {
   const { address } = useAccount();
 
   const { data: requests, isLoading } = useScaffoldReadContract({
@@ -26,7 +26,7 @@ export const RequestsList = ({ filterStatus, title }: { filterStatus?: number, t
       if (filterStatus !== undefined && req.status !== filterStatus) return false;
       return true;
     })
-    .sort((a: any, b: any) => Number(b.id) - Number(a.id)); 
+    .sort((a: any, b: any) => Number(b.id) - Number(a.id));
 
   return (
     <div className="w-full font-sans">
@@ -36,7 +36,7 @@ export const RequestsList = ({ filterStatus, title }: { filterStatus?: number, t
           {filteredRequests.length}
         </span>
       </div>
-      
+
       {filteredRequests.length === 0 ? (
         <div className="w-full py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 text-gray-400">
           <div className="text-3xl mb-2">🍃</div>
