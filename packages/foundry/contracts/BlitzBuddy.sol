@@ -45,14 +45,38 @@ abstract contract BlitzBuddy is ReentrancyGuard {
 
     event RequestExpired(uint256 indexed id);
 
+    /// String args use `calldata` (not `memory`) because for external calls calldata is read directly from
+    /// the transaction payload—no copy into memory—so it costs less gas and matches how callers send the data.
     function createRequest(
         string calldata title,
         string calldata description,
         string calldata category,
-        uint256 bounty,
         uint32 durationMinutes,
         uint64 expiresAt
-    ) external virtual {}
+    ) external payable virtual {
+        require(msg.value > 0, "Bounty required");
+        require(expiresAt > block.timestamp, "Invalid expiry");
+        require(bytes(title).length > 0, "Title required");
+
+        uint256 id = nextRequestId;
+        requests[id] = HelpRequest({
+            id: id,
+            requester: msg.sender,
+            helper: address(0),
+            title: title,
+            description: description,
+            category: category,
+            bounty: msg.value,
+            createdAt: uint64(block.timestamp),
+            expiresAt: expiresAt,
+            durationMinutes: durationMinutes,
+            status: RequestStatus.Open
+        });
+
+        nextRequestId++;
+
+        emit RequestCreated(id, msg.sender, title, msg.value, expiresAt);
+    }
 
     function acceptRequest(uint256 id) external virtual {}
 
