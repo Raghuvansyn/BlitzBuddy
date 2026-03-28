@@ -1,68 +1,48 @@
 "use client";
 
-import Link from "next/link";
 import type { NextPage } from "next";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address } from "~~/components/scaffold-eth";
+import { CreateRequestForm } from "~~/components/blitz/CreateRequestForm";
+import { RequestsList } from "~~/components/blitz/RequestsList";
+import { DeveloperMap } from "~~/components/blitz/DeveloperMap";
 
 const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
-
   return (
     <>
-      <div className="flex items-center flex-col grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address address={connectedAddress} />
+      <div className="flex items-center flex-col grow pt-8 px-4 md:px-10 pb-20 bg-[#fafafa] min-h-screen font-sans text-gray-900">
+        
+        {/* Header */}
+        <div className="w-full max-w-7xl flex flex-col md:flex-row justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+              <div className="w-8 h-8 bg-black text-white flex items-center justify-center rounded-lg text-xl">⚡</div>
+              BlitzBuddy
+            </h1>
+            <p className="text-sm font-medium text-gray-500 mt-2 tracking-wide uppercase">
+              Peer-to-peer hackathon rescue network
+            </p>
           </div>
-
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/hardhat/contracts
-            </code>
-          </p>
         </div>
 
-        <div className="grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
+        <div className="w-full flex flex-col lg:flex-row gap-8 max-w-7xl h-auto lg:h-[500px] mb-12">
+          {/* Left Side: Map of developers */}
+          <div className="w-full lg:w-3/5 h-[400px] lg:h-full flex-shrink-0">
+             <DeveloperMap />
           </div>
+
+          {/* Right Side: Create Request Box */}
+          <div className="w-full lg:w-2/5 h-full flex-shrink-0">
+            <CreateRequestForm />
+          </div>
+        </div>
+
+        <div className="w-full flex gap-8 max-w-7xl flex-col lg:flex-row">
+            <div className="w-full lg:w-1/2 bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+              <RequestsList title="Available Bounties" filterStatus={0} />
+            </div>
+            
+            <div className="w-full lg:w-1/2 bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
+              <RequestsList title="Activity History" />
+            </div>
         </div>
       </div>
     </>
