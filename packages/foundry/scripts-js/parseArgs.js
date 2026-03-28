@@ -7,7 +7,8 @@ import { fileURLToPath } from "url";
 import { selectOrCreateKeystore } from "./selectOrCreateKeystore.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-config();
+// Load `packages/foundry/.env` regardless of `process.cwd()` (e.g. monorepo root vs foundry package).
+config({ path: join(__dirname, "..", ".env") });
 
 // Get all arguments after the script name
 const args = process.argv.slice(2);
@@ -80,22 +81,27 @@ try {
   process.exit(1);
 }
 
+const DEFAULT_LOCALHOST_KEYSTORE = "scaffold-eth-default";
+
+const localhostEnvAccount = process.env.LOCALHOST_KEYSTORE_ACCOUNT;
 if (
-  process.env.LOCALHOST_KEYSTORE_ACCOUNT !== "scaffold-eth-default" &&
-  network === "localhost"
+  network === "localhost" &&
+  localhostEnvAccount != null &&
+  localhostEnvAccount !== "" &&
+  localhostEnvAccount !== DEFAULT_LOCALHOST_KEYSTORE
 ) {
   console.log(`
-⚠️ Warning: Using ${process.env.LOCALHOST_KEYSTORE_ACCOUNT} keystore account on localhost.
+⚠️ Warning: Using ${localhostEnvAccount} keystore account on localhost.
 
 You can either:
-1. Enter the password for ${process.env.LOCALHOST_KEYSTORE_ACCOUNT} account
+1. Enter the password for ${localhostEnvAccount} account
    OR
 2. Set the localhost keystore account in your .env and re-run the command to skip password prompt:
-   LOCALHOST_KEYSTORE_ACCOUNT='scaffold-eth-default'
+   LOCALHOST_KEYSTORE_ACCOUNT='${DEFAULT_LOCALHOST_KEYSTORE}'
 `);
 }
 
-let selectedKeystore = process.env.LOCALHOST_KEYSTORE_ACCOUNT;
+let selectedKeystore = localhostEnvAccount;
 if (network !== "localhost") {
   if (keystoreArg) {
     // Use the keystore provided via command line argument
@@ -131,8 +137,12 @@ if (network !== "localhost") {
   );
 }
 
+if (network === "localhost") {
+  selectedKeystore = selectedKeystore || DEFAULT_LOCALHOST_KEYSTORE;
+}
+
 // Check for default account on live network
-if (selectedKeystore === "scaffold-eth-default" && network !== "localhost") {
+if (selectedKeystore === DEFAULT_LOCALHOST_KEYSTORE && network !== "localhost") {
   console.log(`
 ❌ Error: Cannot deploy to live network using default keystore account!
 
@@ -143,7 +153,7 @@ To deploy to ${network}, please follow these steps:
 
 2. Run the deployment command again.
 
-The default account (scaffold-eth-default) can only be used for localhost deployments.
+The default account (${DEFAULT_LOCALHOST_KEYSTORE}) can only be used for localhost deployments.
 `);
   process.exit(0);
 }

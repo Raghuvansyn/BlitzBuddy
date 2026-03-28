@@ -1,8 +1,12 @@
 import { spawn } from "child_process";
 import { createInterface } from "readline";
 import { config } from "dotenv";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { stdin as input, stdout as output } from "process";
-config();
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: join(__dirname, "..", ".env") });
 
 /**
  * Prompts the user for input with the given question
