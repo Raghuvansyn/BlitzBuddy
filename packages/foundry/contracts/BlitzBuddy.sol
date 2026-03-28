@@ -117,9 +117,46 @@ abstract contract BlitzBuddy is ReentrancyGuard {
         emit RequestCompleted(requestId, helper, amount);
     }
 
-    function cancelRequest(uint256 id) external virtual {}
+    function cancelRequest(uint256 requestId) external nonReentrant {
+        HelpRequest storage req = requests[requestId];
 
-    function expireRequest(uint256 id) external virtual {}
+        // 1. CHECKS
+        require(msg.sender == req.requester, "Not requester");
+        require(req.status == RequestStatus.Open, "Not open");
+
+        // 2. EFFECTS — same CEI rationale as `completeRequest`: finalize state before ETH so reentry cannot
+        // observe a still-funded Open request or double-refund.
+        uint256 amount = req.bounty;
+        req.status = RequestStatus.Cancelled;
+        req.bounty = 0;
+
+        // 3. INTERACTIONS
+        address requester = req.requester;
+        (bool success,) = requester.call{ value: amount }("");
+        require(success, "Transfer failed");
+
+        emit RequestCancelled(requestId, requester);
+    }
+
+    function expireRequest(uint256 requestId) external nonReentrant {
+        HelpRequest storage req = requests[requestId];
+
+        // 1. CHECKS — callable by anyone once the listing is past expiry.
+        require(req.status == RequestStatus.Open, "Not open");
+        require(block.timestamp >= req.expiresAt, "Not expired");
+
+        // 2. EFFECTS
+        uint256 amount = req.bounty;
+        req.status = RequestStatus.Expired;
+        req.bounty = 0;
+
+        // 3. INTERACTIONS
+        address requester = req.requester;
+        (bool success,) = requester.call{ value: amount }("");
+        require(success, "Transfer failed");
+
+        emit RequestExpired(requestId);
+    }
 
     function getAllRequests() external view virtual returns (HelpRequest[] memory);
 }
