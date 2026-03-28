@@ -10,6 +10,19 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Load `packages/foundry/.env` regardless of `process.cwd()` (e.g. monorepo root vs foundry package).
 config({ path: join(__dirname, "..", ".env") });
 
+// Common mistakes: missing var (Node would stringify as "undefined") or literal `undefined` / empty in .env
+const badKeystorePlaceholders = new Set(["", "undefined", "null", "NULL"]);
+function isBadKeystoreName(name) {
+  return (
+    name == null ||
+    (typeof name === "string" && badKeystorePlaceholders.has(name.trim()))
+  );
+}
+const ks = process.env.LOCALHOST_KEYSTORE_ACCOUNT;
+if (isBadKeystoreName(ks)) {
+  delete process.env.LOCALHOST_KEYSTORE_ACCOUNT;
+}
+
 // Get all arguments after the script name
 const args = process.argv.slice(2);
 let fileName = "Deploy.s.sol";
@@ -88,8 +101,7 @@ const localhostEnvAccount =
   typeof localhostEnvRaw === "string" ? localhostEnvRaw.trim() : localhostEnvRaw;
 if (
   network === "localhost" &&
-  localhostEnvAccount != null &&
-  localhostEnvAccount !== "" &&
+  !isBadKeystoreName(localhostEnvAccount) &&
   localhostEnvAccount !== DEFAULT_LOCALHOST_KEYSTORE
 ) {
   console.log(`
@@ -139,14 +151,8 @@ if (network !== "localhost") {
   );
 }
 
-if (network === "localhost") {
-  if (
-    selectedKeystore == null ||
-    selectedKeystore === "" ||
-    selectedKeystore === "undefined"
-  ) {
-    selectedKeystore = DEFAULT_LOCALHOST_KEYSTORE;
-  }
+if (network === "localhost" && isBadKeystoreName(selectedKeystore)) {
+  selectedKeystore = DEFAULT_LOCALHOST_KEYSTORE;
 }
 
 // Check for default account on live network
@@ -166,21 +172,24 @@ The default account (${DEFAULT_LOCALHOST_KEYSTORE}) can only be used for localho
   process.exit(0);
 }
 
-// Set environment variables for the make command
-process.env.DEPLOY_SCRIPT = `script/${fileName}`;
-process.env.RPC_URL = network;
-// Never pass the string "undefined" or an empty value to Foundry (breaks on a bogus keystore path).
-process.env.ETH_KEYSTORE_ACCOUNT =
-  network === "localhost" &&
-  (selectedKeystore == null ||
-    selectedKeystore === "" ||
-    selectedKeystore === "undefined")
+const ethKeystoreForMake =
+  network === "localhost" && isBadKeystoreName(selectedKeystore)
     ? DEFAULT_LOCALHOST_KEYSTORE
     : String(selectedKeystore);
+
+process.env.DEPLOY_SCRIPT = `script/${fileName}`;
+process.env.RPC_URL = network;
+process.env.ETH_KEYSTORE_ACCOUNT = ethKeystoreForMake;
 
 const result = spawnSync("make", ["deploy-and-generate-abis"], {
   stdio: "inherit",
   shell: true,
+  env: {
+    ...process.env,
+    DEPLOY_SCRIPT: `script/${fileName}`,
+    RPC_URL: network,
+    ETH_KEYSTORE_ACCOUNT: ethKeystoreForMake,
+  },
 });
 
 process.exit(result.status);
