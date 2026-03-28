@@ -26,9 +26,9 @@ Options:
   --keystore <name>     Specify the keystore account to use (bypasses selection prompt)
   --help, -h           Show this help message
 Examples:
-  yarn deploy --file DeployYourContract.s.sol --network sepolia
+  yarn deploy --file DeployBlitzBuddy.s.sol --network sepolia
   yarn deploy --network sepolia --keystore my-account
-  yarn deploy --file DeployYourContract.s.sol
+  yarn deploy --file DeployBlitzBuddy.s.sol
   yarn deploy
   `);
   process.exit(0);
@@ -83,7 +83,9 @@ try {
 
 const DEFAULT_LOCALHOST_KEYSTORE = "scaffold-eth-default";
 
-const localhostEnvAccount = process.env.LOCALHOST_KEYSTORE_ACCOUNT;
+const localhostEnvRaw = process.env.LOCALHOST_KEYSTORE_ACCOUNT;
+const localhostEnvAccount =
+  typeof localhostEnvRaw === "string" ? localhostEnvRaw.trim() : localhostEnvRaw;
 if (
   network === "localhost" &&
   localhostEnvAccount != null &&
@@ -138,7 +140,13 @@ if (network !== "localhost") {
 }
 
 if (network === "localhost") {
-  selectedKeystore = selectedKeystore || DEFAULT_LOCALHOST_KEYSTORE;
+  if (
+    selectedKeystore == null ||
+    selectedKeystore === "" ||
+    selectedKeystore === "undefined"
+  ) {
+    selectedKeystore = DEFAULT_LOCALHOST_KEYSTORE;
+  }
 }
 
 // Check for default account on live network
@@ -161,7 +169,14 @@ The default account (${DEFAULT_LOCALHOST_KEYSTORE}) can only be used for localho
 // Set environment variables for the make command
 process.env.DEPLOY_SCRIPT = `script/${fileName}`;
 process.env.RPC_URL = network;
-process.env.ETH_KEYSTORE_ACCOUNT = selectedKeystore;
+// Never pass the string "undefined" or an empty value to Foundry (breaks on a bogus keystore path).
+process.env.ETH_KEYSTORE_ACCOUNT =
+  network === "localhost" &&
+  (selectedKeystore == null ||
+    selectedKeystore === "" ||
+    selectedKeystore === "undefined")
+    ? DEFAULT_LOCALHOST_KEYSTORE
+    : String(selectedKeystore);
 
 const result = spawnSync("make", ["deploy-and-generate-abis"], {
   stdio: "inherit",

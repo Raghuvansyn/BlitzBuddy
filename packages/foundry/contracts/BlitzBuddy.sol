@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-abstract contract BlitzBuddy is ReentrancyGuard {
+contract BlitzBuddy is ReentrancyGuard {
     enum RequestStatus {
         Open,
         Accepted,
@@ -53,7 +53,7 @@ abstract contract BlitzBuddy is ReentrancyGuard {
         string calldata category,
         uint32 durationMinutes,
         uint64 expiresAt
-    ) external payable virtual {
+    ) external payable {
         require(msg.value > 0, "Bounty required");
         require(expiresAt > block.timestamp, "Invalid expiry");
         require(bytes(title).length > 0, "Title required");
@@ -158,5 +158,17 @@ abstract contract BlitzBuddy is ReentrancyGuard {
         emit RequestExpired(requestId);
     }
 
-    function getAllRequests() external view virtual returns (HelpRequest[] memory);
+    // `view`: may read state but cannot write storage, emit events, or send Ether. Callers (and nodes) can use
+    // `eth_call` without broadcasting a transaction. Both getters below are `external view` for this reason.
+    function getAllRequests() external view returns (HelpRequest[] memory) {
+        HelpRequest[] memory all = new HelpRequest[](nextRequestId);
+        for (uint256 i = 0; i < nextRequestId; i++) {
+            all[i] = requests[i];
+        }
+        return all;
+    }
+
+    function getRequest(uint256 id) external view returns (HelpRequest memory) {
+        return requests[id];
+    }
 }
