@@ -13,7 +13,7 @@ const Home: NextPage = () => {
         <div className="w-full max-w-7xl flex flex-col md:flex-row justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
-              <div className="w-8 h-8 bg-black text-white flex items-center justify-center rounded-lg text-xl">⚡</div>
+              <img src="/logo.png" alt="BlitzBuddy Logo" className="w-10 h-10 object-contain rounded-xl shadow-sm border border-gray-100" />
               BlitzBuddy
             </h1>
             <p className="text-sm font-medium text-gray-500 mt-2 tracking-wide uppercase">
@@ -22,7 +22,7 @@ const Home: NextPage = () => {
           </div>
         </div>
 
-        <div className="w-full flex flex-col lg:flex-row gap-8 max-w-7xl h-auto lg:h-[500px] mb-12">
+        <div className="w-full flex flex-col lg:flex-row gap-8 max-w-7xl h-auto lg:min-h-[500px] mb-12">
           {/* Left Side: Map of developers */}
           <div className="w-full lg:w-3/5 h-[400px] lg:h-full flex-shrink-0">
             <DeveloperMap />
